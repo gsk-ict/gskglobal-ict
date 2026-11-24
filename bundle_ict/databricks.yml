@@ -1,0 +1,52 @@
+# Declarative Automation Bundle configuration, more info here: https://docs.databricks.com/en/dev-tools/bundles/settings.html
+bundle:
+  name: "bundle_ict"
+
+include:
+  - resources/*.yml
+  - resources/*/*.yml
+
+# Environment-specific settings, passed to notebooks as job parameters
+variables:
+  catalog:
+    description: Unity Catalog catalog for this environment
+    default: ent_gf_dev
+  secret_scope:
+    description: Key Vault-backed secret scope holding the SAP HANA connection secrets
+    default: coentictaius6kvdevtst01
+  group_name:
+    description: AD group granted schema access (CREATE TABLE, USE SCHEMA) by DDL_Notebook
+    default: AZC-ENT-ICT-US6-CODEORANGE-DEVTEST-COMPUTEOWNER
+  service_principal_id:
+    description: Application (client) ID of the service principal the bundle resources run as
+    default: 2810b3c8-684a-4b45-bfa1-c43ce9ce09f0
+
+targets:
+  # The 'dev' target, for development purposes. This target is the default.
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7052834941273128.8.azuredatabricks.net
+    variables:
+      catalog: ent_gf_dev
+      secret_scope: coentictaius6kvdevtst01
+      group_name: AZC-ENT-ICT-US6-CODEORANGE-DEVTEST-COMPUTEOWNER
+      service_principal_id: 2810b3c8-684a-4b45-bfa1-c43ce9ce09f0
+
+  # The 'prod' target, used for production deployment.
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-7052834941273128.8.azuredatabricks.net
+      # We always use /Users/debolina.x.majumder@gsk.com for all resources to make sure we only have a single copy.
+      root_path: /Users/debolina.x.majumder@gsk.com/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      # Runs as the production service principal, see https://docs.databricks.com/dev-tools/bundles/permissions.html.
+      service_principal_name: ${var.service_principal_id}
+    variables:
+      # TODO: replace with the production catalog, Key Vault secret scope, AD group and service principal
+      catalog: ent_gf_prod
+      secret_scope: REPLACE_WITH_PROD_SECRET_SCOPE
+      group_name: REPLACE_WITH_PROD_GROUP
+      service_principal_id: REPLACE_WITH_PROD_SP_APPLICATION_ID
