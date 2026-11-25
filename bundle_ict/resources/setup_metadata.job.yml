@@ -6,36 +6,16 @@ resources:
       name: ict_setup_metadata
       max_concurrent_runs: 1
 
-      # Classic job cluster (no serverless), based on co-ent-ictai-us6-etl-uc-cluster-devtst01.
-      # Dedicated (single user) access mode: runs as the job's run_as service principal.
+      # Classic job cluster (no serverless), defined once in databricks.yml (var.job_cluster).
       job_clusters:
         - job_cluster_key: setup_cluster
-          new_cluster:
-            policy_id: C963295C07000519 # "Job Compute" cluster policy; run_as SP needs CAN_USE on it
-            spark_version: 16.4.x-scala2.12
-            node_type_id: Standard_DS3_v2
-            driver_node_type_id: Standard_DS3_v2
-            num_workers: 1
-            data_security_mode: SINGLE_USER
-            azure_attributes:
-              availability: ON_DEMAND_AZURE
-              first_on_demand: 1
-            spark_env_vars:
-              PYSPARK_PYTHON: /databricks/python3/bin/python3
-            custom_tags:
-              Data Domain Name: ICT Data Foundation for Analytics and AI
-              TechnicalOwner: bg147314
-              UseCase: ictai
-              Node: ent
-              UseCaseOwner: bg147314
-              BusinessOwner: wk148170
-              ResourceBusinessUnit: ent
+          new_cluster: ${var.job_cluster}
 
       tasks:
         - task_key: ddl
           job_cluster_key: setup_cluster
           notebook_task:
-            notebook_path: ../Utilities/DDL_Notebook.ipynb
+            notebook_path: ../src/Utilities/DDL_Notebook.ipynb
             base_parameters:
               catalog_name: ${var.catalog}
               group_name: ${var.group_name}
@@ -45,6 +25,6 @@ resources:
             - task_key: ddl
           job_cluster_key: setup_cluster
           notebook_task:
-            notebook_path: ../Utilities/Seed_Metadata.ipynb
+            notebook_path: ../src/Utilities/Seed_Metadata.ipynb
             base_parameters:
               catalog_name: ${var.catalog}

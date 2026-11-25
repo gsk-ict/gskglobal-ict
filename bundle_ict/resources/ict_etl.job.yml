@@ -1,0 +1,45 @@
+# ICT ETL: SAP HANA -> foundation -> trusted -> unified, config-driven from ict_metadata.etl_setup_config.
+# Job parameters are passed to every task's notebook widgets.
+resources:
+  jobs:
+    ict_etl:
+      name: ict_etl
+      max_concurrent_runs: 1
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: secret_scope
+          default: ${var.secret_scope}
+        - name: entity_id
+          default: zipt_markup
+
+      # Classic job cluster (no serverless), defined once in databricks.yml (var.job_cluster).
+      job_clusters:
+        - job_cluster_key: etl_cluster
+          new_cluster: ${var.job_cluster}
+
+      tasks:
+        - task_key: foundation
+          job_cluster_key: etl_cluster
+          notebook_task:
+            notebook_path: ../src/Foundation/Data_Ingestion.ipynb
+            base_parameters:
+              entity_ids: "{{job.parameters.entity_id}}"
+          libraries:
+            - maven:
+                coordinates: com.sap.cloud.db.jdbc:ngdbc:2.23.10 # SAP HANA JDBC driver
+
+        - task_key: trusted
+          depends_on:
+            - task_key: foundation
+          job_cluster_key: etl_cluster
+          notebook_task:
+            notebook_path: ../src/Trusted/Load_Trusted_Layer.ipynb
+
+        - task_key: unified
+          depends_on:
+            - task_key: trusted
+          job_cluster_key: etl_cluster
+          notebook_task:
+            notebook_path: ../src/Unified/Load_Unified_Layer.ipynb
