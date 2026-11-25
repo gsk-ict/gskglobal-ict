@@ -20,6 +20,29 @@ variables:
   service_principal_id:
     description: Application (client) ID of the service principal the bundle resources run as
     default: 2810b3c8-684a-4b45-bfa1-c43ce9ce09f0
+  job_cluster:
+    description: Classic job cluster shared by all bundle jobs (based on co-ent-ictai-us6-etl-uc-cluster-devtst01)
+    type: complex
+    default:
+      policy_id: C963295C07000519 # "Job Compute" cluster policy; run_as SP needs CAN_USE on it
+      spark_version: 16.4.x-scala2.12
+      node_type_id: Standard_DS3_v2
+      driver_node_type_id: Standard_DS3_v2
+      num_workers: 1
+      data_security_mode: SINGLE_USER # dedicated access mode: runs as the job's run_as principal
+      azure_attributes:
+        availability: ON_DEMAND_AZURE
+        first_on_demand: 1
+      spark_env_vars:
+        PYSPARK_PYTHON: /databricks/python3/bin/python3
+      custom_tags:
+        Data Domain Name: ICT Data Foundation for Analytics and AI
+        TechnicalOwner: bg147314
+        UseCase: ictai
+        Node: ent
+        UseCaseOwner: bg147314
+        BusinessOwner: wk148170
+        ResourceBusinessUnit: ent
 
 targets:
   # The 'dev' target, for development purposes. This target is the default.
